@@ -1,0 +1,11 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    {{ namespace }}\Form\Type\FieldType\{{ fieldtype_basename }}FieldType: ~
+
+    {{ namespace }}\Persistence\Legacy\Content\FieldValue\Converter\{{ fieldtype_basename }}Converter:
+        tags:
+            - {name: ezpublish.storageEngine.legacy.converter, alias: {{ fieldtype_namespace_identifier }}{{ fieldtype_identifier }}}

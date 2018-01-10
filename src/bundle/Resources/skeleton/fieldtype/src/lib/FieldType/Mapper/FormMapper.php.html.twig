@@ -1,0 +1,67 @@
+<?php
+
+namespace {{ namespace }}\FieldType\Mapper;
+
+{% block use_statements %}
+use {{ namespace }}\Form\Type\FieldType\{{ fieldtype_basename }}FieldType;
+use EzSystems\RepositoryForms\Data\Content\FieldData;
+use EzSystems\RepositoryForms\Data\FieldDefinitionData;
+use EzSystems\RepositoryForms\FieldType\FieldDefinitionFormMapperInterface;
+use EzSystems\RepositoryForms\FieldType\FieldValueFormMapperInterface;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+{% endblock use_statements %}
+
+{% block class_definition %}
+class {{ fieldtype_basename }}FormMapper implements FieldDefinitionFormMapperInterface, FieldValueFormMapperInterface
+{% endblock class_definition %}
+{
+{% block class_body %}
+    public function mapFieldDefinitionForm(FormInterface $fieldDefinitionForm, FieldDefinitionData $data)
+    {
+        $fieldDefinitionForm
+            ->add(
+                $fieldDefinitionForm
+                    ->getConfig()->getFormFactory()->createBuilder()
+                    ->create('defaultValue', {{ fieldtype_basename }}FieldType::class, [
+                        'required' => false,
+                        'label' => 'field_definition.ezstring.default_value',
+                    ])
+                    ->setAutoInitialize(false)
+                    ->getForm()
+            );
+    }
+
+    public function mapFieldValueForm(FormInterface $fieldForm, FieldData $data)
+    {
+        $fieldDefinition = $data->fieldDefinition;
+        $formConfig = $fieldForm->getConfig();
+        $validatorConfiguration = $fieldDefinition->getValidatorConfiguration();
+        $names = $fieldDefinition->getNames();
+        $label = $fieldDefinition->getName($formConfig->getOption('mainLanguageCode')) ?: reset($names);
+
+        $fieldForm
+            ->add(
+                $formConfig->getFormFactory()->createBuilder()
+                    ->create(
+                        'value',
+                        {{ fieldtype_basename }}FieldType::class,
+                        [
+                            'required' => $fieldDefinition->isRequired,
+                            'label' => $label,
+                        ]
+                    )
+                    ->setAutoInitialize(false)
+                    ->getForm()
+            );
+    }
+
+    public function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver
+            ->setDefaults([
+                'translation_domain' => 'ezrepoforms_content_type',
+            ]);
+    }
+{% endblock class_body %}
+}

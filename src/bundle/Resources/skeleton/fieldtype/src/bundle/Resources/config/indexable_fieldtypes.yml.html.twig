@@ -1,0 +1,9 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    {{ namespace }}\FieldType\{{ fieldtype_basename }}\SearchField:
+        tags:
+            - {name: ezpublish.fieldType.indexable, alias: {{ fieldtype_namespace_identifier }}{{ fieldtype_identifier }}}

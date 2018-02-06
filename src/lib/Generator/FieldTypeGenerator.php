@@ -9,15 +9,29 @@ use Symfony\Component\HttpKernel\KernelInterface;
 class FieldTypeGenerator extends Generator
 {
     /**
-     * @var KernelInterface $kernel
+     * @var KernelInterface
      */
     private $kernel;
 
+    /**
+     * FieldTypeGenerator constructor.
+     *
+     * @param KernelInterface $kernel
+     */
     public function __construct(KernelInterface $kernel)
     {
         $this->kernel = $kernel;
     }
 
+    /**
+     * Generate new FieldType bundle.
+     *
+     * @param string $namespace
+     * @param string $bundle
+     * @param string $dir
+     * @param string $fieldTypeName
+     * @param string $fieldTypeNamespace
+     */
     public function generate(string $namespace, string $bundle, string $dir, string $fieldTypeName, string $fieldTypeNamespace)
     {
         $dir .= '/' . strtr($namespace, '\\', '/');
@@ -32,7 +46,7 @@ class FieldTypeGenerator extends Generator
             }
 
             $files = scandir($dir);
-            if ($files != array('.', '..')) {
+            if ($files != ['.', '..']) {
                 throw new \RuntimeException(
                     sprintf(
                         'Unable to generate the bundle as the target directory "%s" is not empty.',
@@ -54,7 +68,7 @@ class FieldTypeGenerator extends Generator
         $basename = substr($bundle, 0, -6);
         $parameters = [
             'namespace' => str_replace('Bundle', '', $namespace),
-            'bundle'    => $bundle,
+            'bundle' => $bundle,
             'bundle_basename' => $basename,
             'bundle_basename_lower' => strtolower($basename),
             'extension_alias' => Container::underscore($basename),
@@ -62,11 +76,11 @@ class FieldTypeGenerator extends Generator
             'fieldtype_basename' => self::identify($fieldTypeName),
             'fieldtype_identifier' => strtolower(self::identify($fieldTypeName)),
             'fieldtype_namespace' => $fieldTypeNamespace,
-            'fieldtype_namespace_identifier' => strtolower(self::identify($fieldTypeNamespace))
+            'fieldtype_namespace_identifier' => strtolower(self::identify($fieldTypeNamespace)),
         ];
 
         $this->setSkeletonDirs([
-            $this->kernel->locateResource('@EdgarEzFieldTypeExtraBundle/Resources/skeleton')
+            $this->kernel->locateResource('@EdgarEzFieldTypeExtraBundle/Resources/skeleton'),
         ]);
 
         $this->renderFile('fieldtype/src/bundle/Bundle.php.html.twig', $dir . '/src/bundle/' . $bundle . '.php', $parameters);
@@ -90,11 +104,23 @@ class FieldTypeGenerator extends Generator
         $this->renderFile('fieldtype/src/bundle/Resources/translations/fieldtypes.en.yml.html.twig', $dir . '/src/bundle/Resources/translations/fieldtypes.en.yml', $parameters);
     }
 
+    /**
+     * Transform string to add underscore.
+     *
+     * @param string $id
+     *
+     * @return string
+     */
     public static function underscore(string $id): string
     {
-        return preg_replace(array('/([A-Z]+)([A-Z][a-z])/', '/([a-z\d])([A-Z])/'), ['\\1_\\2', '\\1_\\2'], str_replace([' ', '_'], '', $id));
+        return preg_replace(['/([A-Z]+)([A-Z][a-z])/', '/([a-z\d])([A-Z])/'], ['\\1_\\2', '\\1_\\2'], str_replace([' ', '_'], '', $id));
     }
 
+    /**
+     * @param string $fieldTypeName
+     *
+     * @return string
+     */
     public static function identify(string $fieldTypeName): string
     {
         $fieldTypeName = self::underscore($fieldTypeName);

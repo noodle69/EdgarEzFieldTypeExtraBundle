@@ -19,7 +19,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 class GenerateFieldTypeCommand extends GeneratorCommand
 {
     /**
-     * Configure FieldType generator command
+     * Configure FieldType generator command.
      */
     protected function configure()
     {
@@ -29,7 +29,7 @@ class GenerateFieldTypeCommand extends GeneratorCommand
                 new InputOption('dir', '', InputOption::VALUE_REQUIRED, 'The directory where to create the bundle'),
                 new InputOption('bundle-name', '', InputOption::VALUE_REQUIRED, 'The optional bundle name'),
                 new InputOption('fieldtype-name', '', InputOption::VALUE_REQUIRED, 'The field type name'),
-                new InputOption('fieldtype-namespace', '', InputOption::VALUE_REQUIRED, 'The field type namespace')
+                new InputOption('fieldtype-namespace', '', InputOption::VALUE_REQUIRED, 'The field type namespace'),
             ])
             ->setHelp(<<<EOT
 The <info>edgar:generate:fieldtype</info> command helps you generates new FieldType bundles.
@@ -58,10 +58,11 @@ EOT
     }
 
     /**
-     * Execute FieldType generate command
+     * Execute FieldType generate command.
      *
      * @param InputInterface $input console input
      * @param OutputInterface $output console output
+     *
      * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -86,7 +87,7 @@ EOT
         // validate the namespace, but don't require a vendor namespace
         $namespace = Validators::validateBundleNamespace($input->getOption('namespace'), false);
         if (!$bundle = $input->getOption('bundle-name')) {
-            $bundle = strtr($namespace, array('\\' => ''));
+            $bundle = strtr($namespace, ['\\' => '']);
         }
         $bundle = Validators::validateBundleName($bundle);
         $dir = self::validateTargetDir($input->getOption('dir'));
@@ -109,7 +110,7 @@ EOT
         $runner = $questionHelper->getRunner($output, $errors);
 
         // check that the namespace is already autoloaded
-        $runner($this->checkAutoloader($output, $namespace, $bundle, $dir));
+        $runner($this->checkAutoloader($output, $namespace, $bundle));
 
         // register the bundle in the Kernel class
         $runner(
@@ -124,20 +125,45 @@ EOT
         );
 
         $questionHelper->writeGeneratorSummary($output, $errors);
+
+        return 0;
     }
 
-    protected function checkAutoloader(OutputInterface $output, string $namespace, string $bundle, string  $dir)
+    /**
+     * Inform dev to add bundle to composer.json.
+     *
+     * @param OutputInterface $output
+     * @param string $namespace
+     * @param string $bundle
+     *
+     * @return array
+     */
+    protected function checkAutoloader(OutputInterface $output, string $namespace, string $bundle): array
     {
         $output->write('Checking that the bundle is autoloaded: ');
-        if (!class_exists($namespace.'\\'.$bundle)) {
+        if (!class_exists($namespace . '\\' . $bundle)) {
             return [
                 '- Edit the <comment>composer.json</comment> file and register the bundle',
                 '  namespace in the "autoload" section:',
                 '',
             ];
         }
+
+        return [];
     }
 
+    /**
+     * Add Bundle to AppKernel.
+     *
+     * @param QuestionHelper $questionHelper
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @param KernelInterface $kernel
+     * @param string $namespace
+     * @param string $bundle
+     *
+     * @return array
+     */
     protected function updateKernel(
         QuestionHelper $questionHelper,
         InputInterface $input,
@@ -161,7 +187,7 @@ EOT
         $output->write('Enabling the bundle inside the Kernel: ');
         $manip = new KernelManipulator($kernel);
         try {
-            $ret = $auto ? $manip->addBundle($namespace.'\\'.$bundle) : false;
+            $ret = $auto ? $manip->addBundle($namespace . '\\' . $bundle) : false;
 
             if (!$ret) {
                 $reflected = new \ReflectionObject($kernel);
@@ -170,7 +196,7 @@ EOT
                     sprintf('- Edit <comment>%s</comment>', $reflected->getFilename()),
                     '  and add the following bundle in the <comment>AppKernel::registerBundles()</comment> method:',
                     '',
-                    sprintf('    <comment>new %s(),</comment>', $namespace.'\\'.$bundle),
+                    sprintf('    <comment>new %s(),</comment>', $namespace . '\\' . $bundle),
                     '',
                 ];
             }
@@ -178,13 +204,21 @@ EOT
             return [
                 sprintf(
                     'Bundle <comment>%s</comment> is already defined in <comment>AppKernel::registerBundles()</comment>.',
-                    $namespace.'\\'.$bundle
+                    $namespace . '\\' . $bundle
                 ),
                 '',
             ];
         }
+
+        return [];
     }
 
+    /**
+     * Interact with dev to get informations to generate new FieldType Bundle.
+     *
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     */
     protected function interact(InputInterface $input, OutputInterface $output)
     {
         $questionHelper = $this->getQuestionHelper();
@@ -213,6 +247,15 @@ EOT
         ]);
     }
 
+    /**
+     * Get FieldType namespace.
+     *
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @param QuestionHelper $questionHelper
+     *
+     * @return mixed|null|string
+     */
     private function getNamespace(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper)
     {
         // namespace
@@ -242,7 +285,6 @@ EOT
                 );
                 $question->setValidator(function ($answer) {
                     return Validators::validateBundleNamespace($answer, false);
-
                 });
                 $namespace = $questionHelper->ask($input, $output, $question);
 
@@ -279,6 +321,15 @@ EOT
         return $namespace;
     }
 
+    /**
+     * Get FieldType name.
+     *
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @param QuestionHelper $questionHelper
+     *
+     * @return mixed|null|string
+     */
     private function getFieldTypeName(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper)
     {
         // fieldtype-name
@@ -308,7 +359,6 @@ EOT
                 );
                 $question->setValidator(function ($answer) {
                     return FieldTypeValidator::validateFieldTypeName($answer);
-
                 });
                 $fieldTypeName = $questionHelper->ask($input, $output, $question);
 
@@ -321,6 +371,13 @@ EOT
         return $fieldTypeName;
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @param QuestionHelper $questionHelper
+     *
+     * @return mixed|null|string
+     */
     private function getFieldTypeNamespace(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper)
     {
         // fieldtype-namespace
@@ -331,8 +388,10 @@ EOT
                 ? FieldTypeValidator::validateFieldTypeNamespace($input->getOption('fieldtype-namespace'))
                 : null;
         } catch (\Exception $error) {
+            /** @var FormatterHelper $formatter */
+            $formatter = $questionHelper->getHelperSet()->get('formatter');
             $output->writeln(
-                $questionHelper->getHelperSet()->get('formatter')->formatBlock($error->getMessage(), 'error')
+                $formatter->formatBlock($error->getMessage(), 'error')
             );
         }
 
@@ -348,7 +407,6 @@ EOT
                 );
                 $question->setValidator(function ($answer) {
                     return FieldTypeValidator::validateFieldTypeNamespace($answer);
-
                 });
                 $fieldTypeNamespace = $questionHelper->ask($input, $output, $question);
 
@@ -361,6 +419,16 @@ EOT
         return $fieldTypeNamespace;
     }
 
+    /**
+     * Get FieldType bundle name.
+     *
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @param QuestionHelper $questionHelper
+     * @param $namespace
+     *
+     * @return mixed|null|string
+     */
     private function getBundle(
         InputInterface $input,
         OutputInterface $output,
@@ -382,16 +450,16 @@ EOT
         }
 
         if (null === $bundle) {
-            $bundle = strtr($namespace, array('\\Bundle\\' => '', '\\' => ''));
+            $bundle = strtr($namespace, ['\\Bundle\\' => '', '\\' => '']);
 
-            $output->writeln(array(
+            $output->writeln([
                 '',
                 'In your code, a bundle is often referenced by its name. It can be the',
                 'concatenation of all namespace parts but it\'s really up to you to come',
                 'up with a unique name (a good practice is to start with the vendor name).',
-                'Based on the namespace, we suggest <comment>'.$bundle.'</comment>.',
+                'Based on the namespace, we suggest <comment>' . $bundle . '</comment>.',
                 '',
-            ));
+            ]);
             $question = new Question($questionHelper->getQuestion('FieldType Bundle name', $bundle), $bundle);
             $question->setValidator(
                 ['Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateBundleName']
@@ -403,6 +471,15 @@ EOT
         return $bundle;
     }
 
+    /**
+     * Set Bundle dir.
+     *
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @param QuestionHelper $questionHelper
+     * @param $bundle
+     * @param $namespace
+     */
     private function getDir(
         InputInterface $input,
         OutputInterface $output,
@@ -423,14 +500,14 @@ EOT
         }
 
         if (null === $dir) {
-            $dir = dirname($this->getContainer()->getParameter('kernel.root_dir')).'/src';
+            $dir = dirname($this->getContainer()->getParameter('kernel.root_dir')) . '/src';
 
-            $output->writeln(array(
+            $output->writeln([
                 '',
                 'The bundle can be generated anywhere. The suggested default directory uses',
                 'the standard conventions.',
                 '',
-            ));
+            ]);
             $question = new Question($questionHelper->getQuestion('Target directory', $dir), $dir);
             $question->setValidator(function ($dir) use ($bundle, $namespace) {
                 return self::validateTargetDir($dir);
@@ -440,6 +517,11 @@ EOT
         }
     }
 
+    /**
+     * Initialize FieldType generator.
+     *
+     * @return FieldTypeGenerator
+     */
     protected function createGenerator(): FieldTypeGenerator
     {
         return new FieldTypeGenerator(
@@ -447,8 +529,15 @@ EOT
         );
     }
 
+    /**
+     * Get valid FieldType bundle dir.
+     *
+     * @param string $dir
+     *
+     * @return string
+     */
     public static function validateTargetDir(string $dir): string
     {
-        return '/' === substr($dir, -1, 1) ? $dir : $dir.'/';
+        return '/' === substr($dir, -1, 1) ? $dir : $dir . '/';
     }
 }

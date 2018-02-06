@@ -5,7 +5,10 @@ namespace Edgar\EzFieldTypeExtra\Generator\Validator;
 class FieldTypeValidator
 {
     /**
+     * Validate FieldType name.
+     *
      * @param string $fieldTypeName
+     *
      * @return string
      */
     public static function validateFieldTypeName(string $fieldTypeName): string
@@ -18,7 +21,10 @@ class FieldTypeValidator
     }
 
     /**
+     * Validate FieldType namespace.
+     *
      * @param string $fieldTypeNamespace
+     *
      * @return string
      */
     public static function validateFieldTypeNamespace(string $fieldTypeNamespace): string

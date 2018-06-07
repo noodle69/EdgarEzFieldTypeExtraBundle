@@ -93,12 +93,14 @@ class FieldTypeGenerator extends Generator
         $this->renderFile('fieldtype/src/lib/Form/Type/FieldType/FieldType.php.html.twig', $dir . '/src/lib/Form/Type/FieldType/' . self::identify($fieldTypeName) . 'FieldType.php', $parameters);
 
         $this->renderFile('fieldtype/src/bundle/Resources/config/field_templates.yml.html.twig', $dir . '/src/bundle/Resources/config/field_templates.yml', $parameters);
+        $this->renderFile('fieldtype/src/bundle/Resources/config/field_templates_ui.yml.html.twig', $dir . '/src/bundle/Resources/config/field_templates_ui.yml', $parameters);
         $this->renderFile('fieldtype/src/bundle/Resources/config/field_value_converters.yml.html.twig', $dir . '/src/bundle/Resources/config/field_value_converters.yml', $parameters);
         $this->renderFile('fieldtype/src/bundle/Resources/config/fieldtypes.yml.html.twig', $dir . '/src/bundle/Resources/config/fieldtypes.yml', $parameters);
         $this->renderFile('fieldtype/src/bundle/Resources/config/indexable_fieldtypes.yml.html.twig', $dir . '/src/bundle/Resources/config/indexable_fieldtypes.yml', $parameters);
         $this->renderFile('fieldtype/src/bundle/Resources/views/content_fields.html.twig.html.twig', $dir . '/src/bundle/Resources/views/content_fields.html.twig', $parameters);
         $this->renderFile('fieldtype/src/bundle/Resources/views/field_types.html.twig.html.twig', $dir . '/src/bundle/Resources/views/field_types.html.twig', $parameters);
         $this->renderFile('fieldtype/src/bundle/Resources/views/fielddefinition_settings.html.twig.html.twig', $dir . '/src/bundle/Resources/views/fielddefinition_settings.html.twig', $parameters);
+        $this->renderFile('fieldtype/src/bundle/Resources/views/fieldtype_ui.html.twig.html.twig', $dir . '/src/bundle/Resources/views/fieldtype_ui.html.twig', $parameters);
 
         $this->renderFile('fieldtype/src/bundle/Resources/translations/ezrepoforms_content_type.en.yml.html.twig', $dir . '/src/bundle/Resources/translations/ezrepoforms_content_type.en.yml', $parameters);
         $this->renderFile('fieldtype/src/bundle/Resources/translations/fieldtypes.en.yml.html.twig', $dir . '/src/bundle/Resources/translations/fieldtypes.en.yml', $parameters);
